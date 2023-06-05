@@ -1,31 +1,57 @@
-import React from 'react';
-// import VideoMakerPage from './VideoMakerPage';
-/* eslint-disable no-unused-vars */
-
-// const getNavbarLabels = () => {
-// let pvAdvertiser = vertiser && getDataItem({type:C.TYPES.Advertiser, id:vertiser, status:C.KStatus.Published});
-// let advLogo = pvAdvertiser && pvAdvertiser.value && pvAdvertiser.value.branding && pvAdvertiser.value.branding.logo;
+import React, { useState, useEffect } from 'react';
+import { Button } from 'reactstrap';
+import { evalScript, useInspectedURL } from '../utils/extutils';
+import { space } from '../base/utils/miscutils';
+import Inspector from './Inspector';
 
 
-function MainDiv() {
+const MainDiv = () => {
 
-	alert("HI");
+	const [hasDS, setHasDS] = useState(false);
+	const [inspectedDataStore, setInspectedDataStore] = useState(null);
+	
+	const inspectedURL = useInspectedURL();
+	const urlValidators = [
+		/^(\w*\.)?good-loop\.com+$/g,
+		/^(\w*\.)?sogive\.org+$/g,
+	];
+	const validURL = urlValidators.map(validator => inspectedURL?.host.match(validator)).reduce((prev, cur) => prev || cur);
 
-	return <>
-		<h1>Hello!</h1>
-	</>;
-	/*return (<MainDivBase
-		pageForPath={PAGES}
-		defaultPage={getDefaultPage}
-		homeLink={homeLink}
-		securityCheck={securityCheck}
-		SecurityFailPage={JoinUsPage}
-		navbarPages={getNavbarPages}
-		navbarLabels={{bugreport:"report a bug"}}
-		fullWidthPages={["advert", "vert"]}
-		noRegister
-	/>);*/
+	useEffect(() => {
+		console.error(inspectedURL);
+		if (!validURL) {
+			setHasDS(false);
+			setInspectedDataStore(null);
+		} else {
+			let pvTestDS = evalScript("typeof DataStore !== 'undefined'");
+			pvTestDS.promise.then (res => {
+				setHasDS(res[0]);
+				let pvDS = evalScript("DataStore");
+				pvDS.promise.then (res => {
+					setInspectedDataStore(res);
+				});
+			});
+		}
+	}, [inspectedURL]);
+
+	let status = "";
+	if (!validURL) status = "For safety, can only inspect hosts matching one of:"
+	else if (hasDS) status = "DataStore loaded";
+	else status = "DataStore not found";
+
+	return <div id="dev-panel">
+		<p className='status acn-bb'>
+			{status}
+			{!validURL && <>
+				<br/>
+				<code>
+					{urlValidators.map(validator => <>{validator.toString()}<br/></>)}
+				</code>
+			</>}
+		</p>
+		<Inspector datastore={inspectedDataStore} />
+	</div>;
+	
 }
-
 
 export default MainDiv;

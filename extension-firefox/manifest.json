@@ -6,7 +6,8 @@
   "author": "dodo721",
   "homepage_url": "https://github.com/mdn/webextensions-examples/tree/master/devtools-panels",
   "icons": {
-    "48": "icons/star.png"
+    "48": "icons/gl-logo/LogoMark/logo.bw.48.svg",
+    "96": "icons/gl-logo/LogoMark/logo.bw.48.svg"
   },
   
   "background": {

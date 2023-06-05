@@ -12,14 +12,21 @@ const os = require('os');
 const fs = require('fs');
 // Needed IF you want to run git commands & get current branch
 const { execSync } = require('child_process');
+const extconfig = require('./extension.config.js');
 
 // Check for file "config/$HOSTNAME.js" and look for ServerIO overrides in it
 let SERVERIO_OVERRIDES = JSON.stringify({});
+// Which browser to run the extension in?
+let BROWSER_TARGET = "firefox";
+// Any user specific properties for that browser (unused in this file atm)
+let BROWSER_PROPERTIES = {};
 const configFile = './config/' + os.hostname() + '.js';
 if (fs.existsSync(configFile)) {
     /* eslint-disable-next-line global-require, import/no-dynamic-require */
     let hostConfig = require(configFile);
     if (hostConfig.ServerIOOverrides) SERVERIO_OVERRIDES = JSON.stringify(hostConfig.ServerIOOverrides);
+    if (hostConfig.BrowserTarget) BROWSER_TARGET = hostConfig.BrowserTarget;
+    if (hostConfig.BrowserProperties) BROWSER_PROPERTIES = hostConfig.BrowserProperties;
 }
 
 // Get current git branch. If it's a release branch (which will have matching legacy-unit files)
@@ -32,7 +39,7 @@ const baseConfig = {
     // NB When editing keep the "our code" entry point last in this list - makeConfig override depends on this position.
     entry: ['core-js', './src/js/app.jsx'],
     output: {
-        path: path.resolve(__dirname, './extension/devtools/panel/build/'), // NB: this should include js and css outputs
+        path: path.resolve(__dirname, "extension-"+BROWSER_TARGET, extconfig[BROWSER_TARGET].build_path), // NB: this should include js and css outputs
         // filename: is left undefined and filled in by makeConfig
     },
     devtool: 'source-map',

@@ -29,4 +29,21 @@ const ServerIOOverrides = {
 	// ADRECORDER_ENDPOINT: 'http://localadrecorder.good-loop.com/record',
 }
 
-module.exports = { ServerIOOverrides };
+// ---- Extension Config ----
+
+// "firefox" or "chromium"
+const BrowserTarget = "firefox";
+// User-specific for running extensions
+// If any of these are left blank, they will go to defaults
+const BrowserProperties = {
+	"firefox": {
+		"binary": "/usr/bin/firefox/firefox",
+		"profile": "/home/oem/snap/firefox/common/.mozilla/firefox/tde8p6bu.Debugger"
+	},
+	"chromium": {
+		"binary": "",
+		"profile": ""
+	}
+};
+
+module.exports = { ServerIOOverrides, BrowserTarget, BrowserProperties };
