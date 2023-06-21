@@ -1,6 +1,6 @@
 {
   "description": "Inspect the state of DataStore in the inspector, with utility tools",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "datastore-inspector",
   "version": "1.0",
   "author": "dodo721",
@@ -13,9 +13,18 @@
   "background": {
     "scripts": ["background_scripts/background.js"]
   },
-  
+
+  "content_scripts": [
+    {
+        "matches": ["<all_urls>"],
+        "js": ["content_scripts/message_relay.js"],
+        "run_at": "document_end"
+    }
+  ],
+
   "permissions": [
-      "<all_urls>"
+      "<all_urls>",
+      "storage"
   ],
   
   "devtools_page": "devtools/devtools-page.html"

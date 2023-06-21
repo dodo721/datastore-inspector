@@ -3,29 +3,28 @@ const fs = require("fs");
 const os = require("os");
 const extconfig = require("./extension.config.js");
 
-const runProcess = (command) => {
+/**
+ * Run a long living command and feed output through to current terminal, with an optional tag
+ * @param {*} command 
+ * @param {*} tag 
+ */
+const runProcess = (command, tag="") => {
     
-    let cmds = command.split(" ");
+    let cmds = command.replace(/ *$/g, "").replace(/  /g, " ").split(" ");
     let child = spawn(cmds[0], cmds.splice(1, cmds.length - 1), {detached:false, stdio:'pipe'});
-
+    
     child.stdout.setEncoding('utf8');
     child.stdout.on('data', function(data) {
-        //Here is where the output goes
-
-        console.log(data);
+        console.log(tag, data);
     });
 
     child.stderr.setEncoding('utf8');
     child.stderr.on('data', function(data) {
-        //Here is where the error output goes
-
-        console.error(data);
+        console.error(tag, data);
     });
 
     child.on('close', function(code) {
-        //Here you can get the exit code of the script
-
-        console.log('closing code: ' + code);
+        console.log(tag, 'Exited with code: ' + code);
     });
 
 };
@@ -34,7 +33,7 @@ const beginWatch = () => {
 
     let prod = false;
     let options = {
-        "target":"firefox",
+        "target":"",
         "binary":"",
         "profile":""
     }
@@ -64,7 +63,9 @@ const beginWatch = () => {
     if (fs.existsSync(configFile)) {
         hostConfig = require(configFile);
     }
-    if (hostConfig.BrowserTarget && !options.target) options.target = hostConfig.BrowserTarget;
+    if (hostConfig.BrowserTarget) {
+        if (!options.target || options.target === "") options.target = hostConfig.BrowserTarget;
+    }
     // target should be filled in from either command line or config - check it's valid
     if (!targets.includes(options.target)) {
         console.error("Invalid browser target:",options.target,"\nTarget must be one of "+targets);
@@ -77,18 +78,19 @@ const beginWatch = () => {
 
     console.log("Beginning compile-watch launch with options ",options);
     
-    let webExtTarget = options.target === "chromium" ? "-t chromium " : "";
+    let webExtTarget = options.target === "chromium" ? "--target=chromium" : "";
     let webExtBinary = options.binary ? (options.target === "chromium" ? `--chromium-binary="${options.binary}"` : `--firefox="${options.binary}"`) : "";
     let webExtProfile = options.profile ? (options.target === "chromium" ? `--chromium-profile="${options.profile}"` : `--firefox-profile="${options.profile}"`) : "";
-    let webExtArgs = webExtTarget + webExtBinary + " " + webExtProfile;
+    let webExtArgs = [webExtTarget,webExtBinary,webExtProfile].join(" ");
 
     let commands = [
-        `npm run ${prod ? "compile-watch" : "compile-watch-fast"}`,
-        `web-ext run ${webExtArgs} --devtools --sourceDir=extension-${options.target}`,
+        [`npm run ${prod ? "compile-watch" : "compile-watch-fast"}`, ""],
+        [`web-ext run --devtools --sourceDir=extension-${options.target} ${webExtArgs}`, "[web-ext]"],
     ];
 
-    commands.forEach(command => {
-        const child = runProcess(command);
+    commands.forEach(info => {
+        console.log("Running ", info[0]);
+        const child = runProcess(info[0], info[1]);
     });
 }
 

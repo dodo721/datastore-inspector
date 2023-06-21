@@ -9,7 +9,7 @@ const extconfig = {
 
     "chromium": {
         // relative to extension root dir
-        "build_path": "",
+        "build_path": "devtools/panel/build",
     }
 
 }

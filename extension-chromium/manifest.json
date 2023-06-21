@@ -1,0 +1,15 @@
+{
+    "name": "datastore-inspector",
+    "description": "Inspect the state of DataStore in the inspector, with utility tools",
+    "manifest_version": 3,
+    "version": "1.0",
+    "author": "dodo721",
+    "devtools_page": "devtools/devtools-page.html",
+    "icons": {
+        "48": "icons/gl-logo/LogoMark/logo.bw.48.png"
+    },
+    "permissions": [
+        "<all_urls>",
+        "storage"
+    ]
+}

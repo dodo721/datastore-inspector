@@ -35,6 +35,10 @@ let RELEASE_BRANCH = JSON.stringify('');
 let head = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
 if (head.match(/(gl-)?release-.*/)) RELEASE_BRANCH = JSON.stringify(head);
 
+let BROWSER_API = "";
+if (BROWSER_TARGET === "firefox") BROWSER_API = "browser";
+else if (BROWSER_TARGET === "chromium") BROWSER_API = "chrome";
+
 const baseConfig = {
     // NB When editing keep the "our code" entry point last in this list - makeConfig override depends on this position.
     entry: ['core-js', './src/js/app.jsx'],
@@ -106,6 +110,9 @@ const baseConfig = {
             'process.env': {
                 SERVERIO_OVERRIDES,
                 RELEASE_BRANCH,
+                BROWSER_TARGET:JSON.stringify(BROWSER_TARGET),
+                BROWSER_API,
+                BROWSER_API_STR:'"' + BROWSER_API + '"'
             }
         }),
     ]

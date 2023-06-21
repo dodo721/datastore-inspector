@@ -13,7 +13,9 @@ const Inspector = ({datastore}) => {
 
 	return <div className='inspector'>
 		
-		<InspectorSection title="AppState">
+		<JSONPreview obj={datastore} title="DataStore"/>
+
+		{/*<InspectorSection title="AppState">
 			<p>Test!</p>
 			<InspectorSection title="Test2">
 				<p>Wow</p>
@@ -22,7 +24,7 @@ const Inspector = ({datastore}) => {
 				</InspectorSection>
 				<p>Oes</p>
 			</InspectorSection>
-		</InspectorSection>
+		</InspectorSection>*/}
 
 		{/*<Tabs activeTabId={curTab} setActiveTabId={t => setCurTab(t)} >
             <Tab title="Tab 1" tabId="tab1">
@@ -36,18 +38,25 @@ const Inspector = ({datastore}) => {
 	</div>;
 }
 
-const JSONPreview = ({obj}) => {
+const JSONPreview = ({obj, title}) => {
+
 	let child = null;
 	if (_.isArray(obj)) {
-		child = obj.map(o => <JSONPreview obj={o}/>)
+		child = obj.map((o, i) => <JSONPreview key={o} obj={o} title={i}/>)
+	} else {
+		let keys = Object.keys(obj);
+		if (keys.length && typeof obj !== "string") {
+			child = [];
+			keys.forEach(key => {
+				child.push(<JSONPreview key={key} obj={obj[key]} title={key}/>);
+			})
+		} else {
+			child = <p className='leaf'><span className='type'>{typeof obj}</span> : <span className='value'>{obj.toString()}</span></p>;
+		}
 	}
-	let keys = Object.keys(obj);
-	if (keys.length) {
-		child = [];
-		keys.forEach(key => {
-			child
-		})
-	}
+	return <InspectorSection title={title}>
+		{child}
+	</InspectorSection>;
 }
 
 const InspectorSection = ({title, dfltOpen, children}) => {
@@ -56,8 +65,8 @@ const InspectorSection = ({title, dfltOpen, children}) => {
 	const arrow = open ? "▼" : "▶";
 
 	return <div className={space('inspector-section', open&&"open")}>
-		<p className='title'>
-			<span className='toggle' onClick={() => setOpen(!open)}>{arrow}</span> {title}
+		<p className='title' onClick={() => setOpen(!open)}>
+			<span className='toggle'>{arrow}</span> {title}
 		</p>
 		{open && <div className='content acn-bl pl-3 py-1'>
 			{children}
