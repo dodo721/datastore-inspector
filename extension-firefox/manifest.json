@@ -17,10 +17,15 @@
   "content_scripts": [
     {
         "matches": ["<all_urls>"],
-        "js": ["content_scripts/message_relay.js"],
+        "js": ["content_scripts/content.js"],
         "run_at": "document_end"
     }
   ],
+
+  "externally_connectable": {
+    "matches": ["*://*.good-loop.com/*"]
+  },
+
 
   "permissions": [
       "<all_urls>",

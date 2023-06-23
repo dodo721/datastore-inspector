@@ -24,6 +24,8 @@ browser.runtime.onMessage.addListener(function(request, sender) {
  */
 browser.runtime.onConnect.addListener(function(port) {
 
+  console.log("Background picked up connection");
+
   // Listen to messages sent from the DevTools page
   port.onMessage.addListener(function(request) {
     console.log('incoming message from dev tools page', request);
@@ -38,6 +40,8 @@ browser.runtime.onConnect.addListener(function(port) {
 
       return;
     }
+
+    console.log("BG.JS > CONTENT SENDING ", request);
 
     // Otherwise, broadcast to agent
     browser.tabs.sendMessage(request.tabId, {

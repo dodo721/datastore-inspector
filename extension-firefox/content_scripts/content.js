@@ -24,10 +24,18 @@ window.addEventListener('message', function(event) {
     browser.runtime.sendMessage(message);
 });
 
+const __ext_sendMessage = function(data) {
+    window.postMessage({
+        source: 'datastore-inspect-agent',
+        data: data || {}
+    }, '*');
+};
+
 /*
  * agent <- **content-script.js** <- background.js <- dev tools
  */
 browser.runtime.onMessage.addListener(function(request) {
+    console.log("GETTING A MESSAGE", request);
     request.source = 'datastore-inspect-tools';
     browser.postMessage(request, '*');
 });

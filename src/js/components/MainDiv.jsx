@@ -4,7 +4,7 @@ import { evalScript, useInspectedURL, isHostWhitelisted, whitelistHost } from '.
 import { useExtMessaging } from '../plumbing/extmsg';
 import { space } from '../base/utils/miscutils';
 import Inspector from './Inspector';
-import { setupHooks } from '../plumbing/DataStoreExtHooks';
+import { useDataStoreHooks } from '../plumbing/DataStoreExtHooks';
 
 const MainDiv = () => {
 
@@ -22,6 +22,8 @@ const MainDiv = () => {
 
 	const port = useExtMessaging();
 
+	useDataStoreHooks(port);
+
 	useEffect(() => {
 		if (!validURL) {
 			setHasDS(false);
@@ -38,7 +40,6 @@ const MainDiv = () => {
 		}
 		// Always reset this option on URL change
 		setUnsafeURLs(false);
-		setupHooks(port);
 	}, [inspectedURL]);
 
 	let status = "";
