@@ -8,7 +8,6 @@ browser.runtime.onMessage.addListener(function(request, sender) {
     var tabId = sender.tab.id;
     if (tabId in connections) {
       connections[tabId].postMessage(request);
-      console.log("Relayed msg from background:", request)
     } else {
       console.log("Tab not found in connection list.");
     }
@@ -28,7 +27,6 @@ browser.runtime.onConnect.addListener(function(port) {
 
   // Listen to messages sent from the DevTools page
   port.onMessage.addListener(function(request) {
-    console.log('incoming message from dev tools page', request);
 
     // Register initial connection
     if (request.name === 'init') {
@@ -40,8 +38,6 @@ browser.runtime.onConnect.addListener(function(port) {
 
       return;
     }
-
-    console.log("BG.JS > CONTENT SENDING ", request);
 
     // Otherwise, broadcast to agent
     browser.tabs.sendMessage(request.tabId, {
