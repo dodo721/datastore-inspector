@@ -1,0 +1,29 @@
+
+.override-editor {
+    .server-toggle {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .key {
+        overflow-x: hidden;
+    }
+    .lock-toggle, .reset-btn {
+        text-decoration: none;
+    }
+    .col {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        .key-label {
+            width: 100%;
+        }
+    }
+    .locked {
+        background-color: #ebebeb;
+        .key-label {
+            font-weight: bolder;
+        }
+    }
+}

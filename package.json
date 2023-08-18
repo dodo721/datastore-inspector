@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "webpack --progress --color && ./gitstamp.sh && web-ext build --source-dir=extension --artifacts-dir=dist",
+    "compile": "webpack --progress --color && ./gitstamp.sh",
+    "package-firefox": "web-ext build --source-dir=extension-firefox --artifacts-dir=dist -o",
     "compile-watch": "webpack  --progress --color --watch",
     "compile-watch-fast": "NO_PROD=true webpack --progress --color --watch",
     "run": "node watch.js"

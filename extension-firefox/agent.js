@@ -58,6 +58,16 @@ const __ext_handleMessage = message => {
             window.__ext_datastore_breakpointed_paths_get = window.__ext_datastore_breakpointed_paths_get.filter(p => p !== pathStr);
             console.__ext_log("Breakpoint (GET) removed", path);
         }
+    } else if (message.name === "DS_set_path_value") {
+        const path = message.data.path;
+        const value = message.data.value;
+        __ext_DSsetValueNoBreakpoint(path, value);
+    } else if (message.name === "SIO_set_overrides") {
+        const overrides = message.data.overrides;
+        Object.keys(overrides).forEach(key => {
+            if (ServerIO[key] !== overrides[key]) console.__ext_log("Changed SIO override:", key, overrides[key]);
+            ServerIO[key] = overrides[key];
+        });
     }
 };
 
@@ -65,7 +75,7 @@ const __ext_handleMessage = message => {
 const __ext_sendMessage = function(name, data) {
     window.postMessage({
         source: 'datastore-inspect-agent',
-        name, data
+        name, data:JSON.stringify(data)
     }, '*');
 };
 
@@ -80,8 +90,15 @@ DataStore.setValue = (...params) => {
         debugger;
     }
     __ext_ogDSsetValue(...params);
-    __ext_sendMessage("DS_set_value", {path, value, update, dataStore:JSON.stringify(DataStore)});
+    __ext_sendMessage("DS_set_value", {path, value, update, dataStore:DataStore});
 };
+const __ext_DSsetValueNoBreakpoint = (...params) => {
+    const path = params[0];
+    const value = params[1];
+    const update = params[2];
+    __ext_ogDSsetValue(...params);
+    __ext_sendMessage("DS_set_value", {path, value, update, dataStore:DataStore});
+}
 
 // Augment DataStore.setValue with our listeners
 const __ext_ogDSgetValue = DataStore.getValue.bind(DataStore);

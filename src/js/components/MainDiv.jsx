@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from 'reactstrap';
 import _ from 'lodash';
-import { evalScript, useInspectedURL, isHostWhitelisted, whitelistHost } from '../utils/extutils';
+import { evalScript, useInspectedURL, $0 } from '../utils/extutils';
 import { useExtMessaging } from '../plumbing/extmsg';
 import { space, setObjectValueByPath, getObjectValueByPath } from '../base/utils/miscutils';
 import Inspector from './Inspector';
-import { useDataStoreHooks } from '../plumbing/DataStoreExtHooks';
+import OverrideEditor from './OverrideEditor';
+import { useDataStoreHooks, useServerIOOverrides } from '../plumbing/DataStoreExtHooks';
 
 const MainDiv = () => {
 
@@ -21,11 +22,12 @@ const MainDiv = () => {
 		/^(\w*\.)?sogive\.org+$/g,
 	];
 	const validated = urlValidators.map(validator => inspectedURL?.host.match(validator)).reduce((prev, cur) => prev || cur);
-	const validURL = unsafeURLs || validated;
+	const validURL = !!(unsafeURLs || validated);
 
 	const [port, sendMessage] = useExtMessaging();
 
-	useDataStoreHooks(port, sendMessage, inspectedURL);
+	useDataStoreHooks(port, sendMessage, inspectedURL, validURL);
+	const overrides = useServerIOOverrides(inspectedURL, validURL);
 
 	useEffect(() => {
 		if (!validURL) {
@@ -52,10 +54,11 @@ const MainDiv = () => {
 	const portListener = useCallback((message) => {
 		const name = message.name;
 		if (name === "DS_set_value") {
-			const path = message.data.path;
-			const value = message.data.value;
-			const update = message.data.update;
-			const dataStore = JSON.parse(message.data.dataStore);
+			const data = JSON.parse(message.data);
+			const path = data.path;
+			const value = data.value;
+			const update = data.update;
+			const dataStore = data.dataStore;
 			//console.log("DS:", inspectedDataStore);
 			//console.log("Updating value:", path, value);
 			//const ds = _.cloneDeep(da);
@@ -93,6 +96,10 @@ const MainDiv = () => {
 		}
 	}
 
+	const updatePathValue = (path, value) => {
+		sendMessage("DS_set_path_value", {path, value});
+	}
+
 	return <div id="dev-panel">
 		<p className='status acn-bb'>
 			{status}
@@ -106,7 +113,9 @@ const MainDiv = () => {
 		</p>
 		<Inspector datastore={inspectedDataStore}
 			setBreakpointSet={breakpointPathSet} setBreakpointGet={breakpointPathGet}
-			breakpointsGet={breakpointsGet} breakpointsSet={breakpointsSet}/>
+			breakpointsGet={breakpointsGet} breakpointsSet={breakpointsSet}
+			updatePathValue={updatePathValue} />
+		<OverrideEditor overrides={overrides} sendMessage={sendMessage} inspectedURL={inspectedURL} port={port}/>
 	</div>;
 	
 }

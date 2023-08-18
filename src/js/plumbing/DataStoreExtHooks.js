@@ -4,13 +4,15 @@ import DataStore from '../base/plumbing/DataStore';
 
 const api = process.env.BROWSER_API;
 
-export const useDataStoreHooks = (port, sendMessage, inspectedURL) => {
+export const useDataStoreHooks = (port, sendMessage, inspectedURL, safeToInject) => {
 
     useEffect(() => {
         if (!port) {
             console.log("No port, can't inject");
             return;
         }
+        if (!safeToInject) return;
+
         var injectedGlobal = 'window.__ext_datastore_agent_injected';
 
         api.devtools.inspectedWindow.eval(injectedGlobal).then(result => {
@@ -36,5 +38,36 @@ export const useDataStoreHooks = (port, sendMessage, inspectedURL) => {
         });
         //${API_STR}.runtime.sendMessage({event:"DS_setValue", params});
         //port.onMessage.addListener(portListener);
-    }, [port, inspectedURL]);
-}
+    }, [port, inspectedURL, safeToInject]);
+};
+
+export const useServerIOOverrides = (inspectedURL, safeToInject) => {
+
+    const [overrides, setOverrides] = useState({});
+    
+    useEffect(() => {
+        api.devtools.inspectedWindow.eval('ServerIO').then(res => {
+            const serverIO = res[0];
+            if (!serverIO) {
+                console.error("Cannot find ServerIO??");
+                return;
+            }
+            setOverrides(findOverrides(serverIO));
+        });
+    }, [inspectedURL, safeToInject]);
+
+    return overrides;
+};
+
+const findOverrides = (serverIO) => {
+    const overrides = {};
+    const urlRegex = /^https?:\/\/(\w*\.)?(good\-loop\.com|sogive\.org)\/?.*$/g;
+    Object.keys(serverIO).forEach(key => {
+        if (key.toUpperCase() !== key) return; // only all caps keys
+        const val = serverIO[key];
+        if (typeof val === "string" && val.match(urlRegex)) {
+            overrides[key] = val;
+        }
+    });
+    return overrides;
+};

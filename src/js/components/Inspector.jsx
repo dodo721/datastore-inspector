@@ -1,24 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from 'reactstrap';
-import { Tab, Tabs } from '../base/components/Tabs';
 import { space, ellipsize } from '../base/utils/miscutils';
 import _ from 'lodash';
+import { FoldoutSection } from './Components';
 
 
-const Inspector = ({datastore, setBreakpointGet, setBreakpointSet, breakpointsGet, breakpointsSet}) => {
-
-	const [curTab, setCurTab] = useState("tab1");
+const Inspector = ({datastore, setBreakpointGet, setBreakpointSet, breakpointsGet, breakpointsSet, updatePathValue}) => {
 	
     if (!datastore) return null;
 
 	return <div className='inspector'>
-		<JSONPreview obj={datastore.appstate} title="DataStore AppState" path={[]} top
+		<JSONPreview obj={datastore.appstate} title={<b>DataStore AppState</b>} path={[]} top
 			noBreakpoint setBreakpointGet={setBreakpointGet} setBreakpointSet={setBreakpointSet}
-			breakpointsGet={breakpointsGet} breakpointsSet={breakpointsSet}/>
+			breakpointsGet={breakpointsGet} breakpointsSet={breakpointsSet} updatePathValue={updatePathValue}/>
 	</div>;
 }
 
-const JSONPreview = ({obj, title, keyName, path, noBreakpoint, setBreakpointGet, setBreakpointSet, top, breakpointsGet, breakpointsSet}) => {
+const JSONPreview = ({obj, title, keyName, path, noBreakpoint, setBreakpointGet, setBreakpointSet, top, breakpointsGet, breakpointsSet, updatePathValue}) => {
 
 	let child = null;
 	if (!obj) child = <p className='leaf'><span className='type'>{typeof obj}</span> : <span className='value'>{JSON.stringify(obj)}</span></p>;
@@ -28,6 +26,7 @@ const JSONPreview = ({obj, title, keyName, path, noBreakpoint, setBreakpointGet,
 			return <JSONPreview key={o} obj={o} keyName={i} path={path.concat(i)}
 					setBreakpointGet={setBreakpointGet} setBreakpointSet={setBreakpointSet}
 					breakpointsGet={breakpointsGet} breakpointsSet={breakpointsSet}
+					updatePathValue={updatePathValue}
 					title={<>{i}: <span className='val-preview'>{valPrev}</span></>}/>
 		});
 	} else {
@@ -39,10 +38,11 @@ const JSONPreview = ({obj, title, keyName, path, noBreakpoint, setBreakpointGet,
 				child.push(<JSONPreview key={key} obj={obj[key]} keyName={key} path={path.concat(key)}
 							setBreakpointGet={setBreakpointGet} setBreakpointSet={setBreakpointSet}
 							breakpointsGet={breakpointsGet} breakpointsSet={breakpointsSet}
+							updatePathValue={updatePathValue}
 							title={<>{key}: <span className='val-preview'>{valPrev}</span></>}/>);
 			})
 		} else {
-			child = <p className='leaf'><span className='type'>{typeof obj}</span> : <span className='value'>{JSON.stringify(obj)}</span></p>;
+			child = <LeafValueEditor value={obj} path={path} updatePathValue={updatePathValue}/>
 		}
 	}
 	return <InspectorSection title={title} keyName={keyName} path={path} noBreakpoint={noBreakpoint} top={top}
@@ -53,6 +53,35 @@ const JSONPreview = ({obj, title, keyName, path, noBreakpoint, setBreakpointGet,
 	</InspectorSection>;
 }
 
+
+const LeafValueEditor = ({value, path, updatePathValue}) => {
+
+	const [interimValue, setInterimValue] = useState(value);
+
+	useEffect(() => {
+		setInterimValue(value);
+	}, [value]);
+
+	const inputType = {
+		"string": "text",
+		"number": "number",
+		"boolean": "checkbox"
+	}[typeof value];
+
+	const onValueChange = (e) => {
+		const newVal = e.target.value;
+		setInterimValue(newVal);
+		updatePathValue(path, newVal);
+	}
+
+	return <div className='leaf d-flex flex-row justify-content-between'>
+		<p className="type">{typeof value}</p>
+		{inputType ? <input className='value' type={inputType} value={interimValue} onChange={onValueChange}/>
+		: <p className='value'>{JSON.stringify(interimValue)}</p>}
+	</div>
+}
+
+
 const InspectorSection = ({title, children, keyName, path, noBreakpoint, setBreakpointGet, setBreakpointSet, top, breakpointsGet, breakpointsSet}) => {
 
 	const [open, setOpen] = useState(false);
@@ -60,38 +89,6 @@ const InspectorSection = ({title, children, keyName, path, noBreakpoint, setBrea
 	
 	const breakpointedGet = breakpointsGet.includes(path.join("/"));
 	const breakpointedSet = breakpointsSet.includes(path.join("/"));
-
-	// Is a parent breakpointed, and thus overriding us?
-	/*let isSupersededGet = false;
-	let isSupersededSet = false;
-
-	if (!breakpointedGet) {
-		breakpointsGet.forEach(pathStr => {
-			let brPt = pathStr.split("/");
-			// A parent can only be overriding us if they are above us
-			if (brPt.length < path.length) {
-				// if the nodes present in the shorter array match ours as far as they go, this is a parent
-				if (pathStr === path.splice(0, brPt.length).join("/")) {
-					isSupersededGet = true;
-					return;
-				}
-			}
-		});
-	}
-
-	if (!breakpointedSet) {
-		breakpointsSet.forEach(pathStr => {
-			let brPt = pathStr.split("/");
-			// A parent can only be overriding us if they are above us
-			if (brPt.length < path.length) {
-				// if the nodes present in the shorter array match ours as far as they go, this is a parent
-				if (pathStr === path.splice(0, brPt.length).join("/")) {
-					isSupersededSet = true;
-					return;
-				}
-			}
-		});
-	}*/
 
 	const breakpointSet = e => {
 		e.stopPropagation();
@@ -112,9 +109,8 @@ const InspectorSection = ({title, children, keyName, path, noBreakpoint, setBrea
 	//if (isSupersededSet) symbolSet = "◈";
 	if (breakpointedSet) symbolSet = "◆";
 
-	return <div className={space('inspector-section', open&&"open")}>
-		<div className='title d-flex flex-row justify-content-between align-items-center' onClick={() => setOpen(!open)}>
-			<div><span className='toggle'>{arrow}</span> {title}</div>
+	return <FoldoutSection title={title} indent
+		extras={
 			<div className='breakpoints'>
 				{!noBreakpoint && <>
 					<a className="breakpoint" onClick={e => breakpointGet(e)}>&nbsp;&nbsp;{symbolGet}</a>
@@ -125,11 +121,10 @@ const InspectorSection = ({title, children, keyName, path, noBreakpoint, setBrea
 					<span className='breakpoint-title'>SET</span>
 				</>}
 			</div>
-		</div>
-		{open && <div className='content acn-bl pl-3 py-1'>
-			{children}
-		</div>}
-	</div>;
+		}
+	>
+		{children}
+	</FoldoutSection>;
 
 }
 

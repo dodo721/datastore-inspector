@@ -39,29 +39,8 @@ export const useInspectedURL = () => {
     return url;
 }
 
-/**
- * Check if the local storage whitelist contains a host string
- * @param {String} host 
- */
-export const isHostWhitelisted = host => {
-    if (!host) return null;
-    return DataStore.fetch(WHITELIST_PATH.concat(host), async () => {
-        const whitelist = await api.storage.local.get("whitelist");
-        return !!whitelist[host];
-    }, 1000);
-}
-
-/**
- * Whitelist a host
- * @param {String} host 
- * @param {Boolean} [val] 
- */
-export const whitelistHost = (host, val=true) => {
-    return (async () => {
-        const whitelist = await api.storage.local.get("whitelist");
-        whitelist[host] = val;
-        return api.storage.local.set({whitelist});
-    })();
+export const $0 = async () => {
+    return (await evalScript("$0").promise)[0];
 }
 
 /**
