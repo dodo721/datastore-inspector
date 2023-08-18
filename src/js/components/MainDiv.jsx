@@ -35,10 +35,10 @@ const MainDiv = () => {
 			setInspectedDataStore(null);
 		} else {
 			let pvTestDS = evalScript("typeof DataStore !== 'undefined'");
-			pvTestDS.promise.then (res => {
+			pvTestDS.then (res => {
 				setHasDS(res[0]);
 				let pvDS = evalScript("DataStore");
-				pvDS.promise.then (res => {
+				pvDS.then (res => {
 					setInspectedDataStore(res[0]);
 				});
 			});

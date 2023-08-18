@@ -89,15 +89,18 @@ DataStore.setValue = (...params) => {
         console.__ext_log("Breakpoint triggered (SET)", path, value);
         debugger;
     }
+    const ogValue = __ext_ogDSgetValue(path);
     __ext_ogDSsetValue(...params);
-    __ext_sendMessage("DS_set_value", {path, value, update, dataStore:DataStore});
+    if (ogValue !== value)
+        __ext_sendMessage("DS_set_value", {path, value, update, dataStore:DataStore});
 };
 const __ext_DSsetValueNoBreakpoint = (...params) => {
     const path = params[0];
     const value = params[1];
     const update = params[2];
     __ext_ogDSsetValue(...params);
-    __ext_sendMessage("DS_set_value", {path, value, update, dataStore:DataStore});
+    console.
+    //__ext_sendMessage("DS_set_value", {path, value, update, dataStore:DataStore}); No need to update with redundant info - just causes typing lag
 }
 
 // Augment DataStore.setValue with our listeners

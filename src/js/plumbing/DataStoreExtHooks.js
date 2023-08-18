@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { API_STR, evalScript } from '../utils/extutils';
+import { API_STR } from '../utils/extutils';
 import DataStore from '../base/plumbing/DataStore';
 
 const api = process.env.BROWSER_API;

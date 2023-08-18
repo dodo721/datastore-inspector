@@ -17,10 +17,8 @@ const WHITELIST_PATH = ['transient', 'ext', 'whitelist'];
  * @param {String} script 
  */
 export const evalScript = (script) => {
-    return DataStore.fetch(EVAL_PATH.concat(script).concat(new Date().getTime()), () => {
-        const promise = api.devtools.inspectedWindow.eval(script);
-        return promise;
-    }, 1000);
+    const promise = api.devtools.inspectedWindow.eval(script);
+    return promise;
 }
 
 /**
@@ -32,7 +30,7 @@ export const useInspectedURL = () => {
 
     useEffect(() => {
         api.devtools.network.onNavigated.addListener(updateURL);
-        evalScript("window.location.href").promise.then(u => updateURL(u[0]));
+        evalScript("window.location.href").then(u => updateURL(u[0]));
         return () => api.devtools.network.onNavigated.removeListener(updateURL);
     }, []);
 
@@ -40,7 +38,7 @@ export const useInspectedURL = () => {
 }
 
 export const $0 = async () => {
-    return (await evalScript("$0").promise)[0];
+    return (await evalScript("$0"))[0];
 }
 
 /**
