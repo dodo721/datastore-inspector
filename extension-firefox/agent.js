@@ -14,6 +14,8 @@ console.__ext_log = (msg, ...rest) => {
     console.log("%c[DataStoreInspector] " + "%c"+msg, "color:blue;font-weight:bold", "color:red", ...rest);
 }
 
+console.__ext_log("Injected!");
+
 // Listen for messages from devtools (from content script)
 window.addEventListener('message', function(event) {
     // Only accept messages from same frame
@@ -63,9 +65,11 @@ const __ext_handleMessage = message => {
         const value = message.data.value;
         __ext_DSsetValueNoBreakpoint(path, value);
     } else if (message.name === "SIO_set_overrides") {
+        console.log("GOT OVERRIDESSSSSSSSS", message.data.overrides);
         const overrides = message.data.overrides;
         Object.keys(overrides).forEach(key => {
-            if (ServerIO[key] !== overrides[key]) console.__ext_log("Changed SIO override:", key, overrides[key]);
+            //if (ServerIO[key] !== overrides[key])
+                console.__ext_log("Changed SIO override:", key, overrides[key]);
             ServerIO[key] = overrides[key];
         });
     }

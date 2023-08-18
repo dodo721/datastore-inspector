@@ -86,17 +86,34 @@ const OverrideEditor = ({port, inspectedURL, overrides, sendMessage}) => {
         sendMessage('SIO_set_overrides', {overrides:newOverrides});
     }
 
+    const onResetAllOverrides = () => {
+        const newOverrides = _.cloneDeep(interimOverrides);
+        Object.keys(interimOverrides).forEach(key => {
+            if (!lockedOverrides.includes(key)) {
+                newOverrides[key] = ogOverrides[key];
+            }
+        });
+        setInterimOverrides(newOverrides);
+        setServer(getServerType(inspectedURL?.host));
+        sendMessage('SIO_set_overrides', {overrides:newOverrides});
+    }
+
     return <div className='override-editor acn-bt'>
         <FoldoutSection title={<b>ServerIO Overrides</b>} extras={<small className='pr-2'>Warning: Experimental!</small>} indent>
 
             <div className='server-toggle px-3 mb-2'>
-                <p>Server togggle all endpoints:</p>
+                <p>Server toggle all endpoints:</p>
                 <select className='server-select' value={server} onChange={onServerToggle}>
                     {Object.keys(SERVER_OPTIONS).map(prefix => <option value={prefix}>{SERVER_OPTIONS[prefix]}</option>)}
                 </select>
             </div>
+            <div className='server-toggle px-3 mb-2'>
+                <p>Reset all endpoints:</p>
+                <button className='reset-all-btn' onClick={onResetAllOverrides}>Reset</button>
+            </div>
 
             <small>Locked overrides will be reset on reloading, however it takes the extension a moment to load - so initial calls on a reload will be made to the original overrides most likely.</small>
+            <br/>
             <br/>
 
             {Object.keys(interimOverrides).map(key => {
